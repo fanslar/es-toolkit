@@ -1,0 +1,46 @@
+import type { meanBy as meanByLodash } from 'lodash'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import { slice } from '../_internal/slice'
+import { meanBy } from './meanBy'
+
+describe('meanBy', () => {
+  const objects = [{ a: 2 }, { a: 3 }, { a: 1 }]
+
+  it('should work with an `iteratee`', () => {
+    const actual = meanBy(objects, object => object.a)
+
+    expect(actual).toEqual(2)
+  })
+
+  it('should provide correct `iteratee` arguments', () => {
+    let args: any
+
+    meanBy(objects, function () {
+      // eslint-disable-next-line
+      args || (args = slice.call(arguments));
+    })
+
+    expect(args).toEqual([{ a: 2 }])
+  })
+
+  it('should work with `_.property` shorthands', () => {
+    const arrays = [[2], [3], [1]]
+    expect(meanBy(arrays, 0)).toBe(2)
+    expect(meanBy(objects, 'a')).toBe(2)
+  })
+
+  it('should handle null and undefined values', () => {
+    expect(meanBy(null)).toBe(Number.NaN)
+    expect(meanBy(undefined)).toBe(Number.NaN)
+  })
+
+  it('should work without iteratee parameter (default to identity)', () => {
+    const numbers = [1, 2, 3]
+
+    expect(meanBy(numbers)).toBe(2)
+  })
+
+  it('should match the type of lodash', () => {
+    expectTypeOf(meanBy).toEqualTypeOf<typeof meanByLodash>()
+  })
+})

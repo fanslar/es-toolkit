@@ -1,0 +1,62 @@
+import type { kebabCase as kebabCaseLodash } from 'lodash'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import { kebabCase } from './kebabCase'
+
+describe('kebabCase', () => {
+  const strings = ['foo bar', 'Foo bar', 'foo Bar', 'Foo Bar', 'FOO BAR', 'fooBar', '--foo-bar--', '__foo_bar__']
+
+  it(`should convert \`string\``, () => {
+    const actual = strings.map(string => kebabCase(string))
+
+    const expected = strings.map(() => 'foo-bar')
+
+    expect(actual).toEqual(expected)
+  })
+
+  it('should convert string to snake case, identical to lodash', () => {
+    expect(kebabCase('åäöÅÄÖ')).toBe('aao-aao')
+    expect(kebabCase('helloÅäöWorld')).toBe('hello-aao-world')
+    expect(kebabCase('café')).toBe('cafe')
+    expect(kebabCase('naïve')).toBe('naive')
+    expect(kebabCase('Zürich')).toBe('zurich')
+    expect(kebabCase('São Paulo')).toBe('sao-paulo')
+    expect(kebabCase('Москва')).toBe('москва')
+  })
+
+  it(`should handle double-converting strings`, () => {
+    const actual = strings.map(string => kebabCase(kebabCase(string)))
+
+    const expected = strings.map(() => 'foo-bar')
+
+    expect(actual).toEqual(expected)
+  })
+
+  it(`should remove contraction apostrophes`, () => {
+    const postfixes = ['d', 'll', 'm', 're', 's', 't', 've'];
+
+    ['\'', '\u2019'].forEach((apos) => {
+      const actual = postfixes.map(postfix => kebabCase(`a b${apos}${postfix} c`))
+
+      const expected = postfixes.map(postfix => `a-b${postfix}-c`)
+
+      expect(actual).toEqual(expected)
+    })
+  })
+
+  it(`should remove Latin mathematical operators`, () => {
+    const actual = ['\xD7', '\xF7'].map(kebabCase)
+    expect(actual).toEqual(['', ''])
+  })
+
+  it(`should coerce \`string\` to a string`, () => {
+    const string = 'foo bar'
+    expect(kebabCase(new Object(string))).toBe('foo-bar')
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    expect(kebabCase({ toString: () => string })).toBe('foo-bar')
+  })
+
+  it('should match the type of lodash', () => {
+    expectTypeOf(kebabCase).toEqualTypeOf<typeof kebabCaseLodash>()
+  })
+})

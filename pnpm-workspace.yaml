@@ -1,0 +1,46 @@
+catalogMode: prefer
+ignoreWorkspaceRootCheck: true
+shellEmulator: true
+trustPolicy: no-downgrade
+
+packages:
+  - playground
+  - docs
+  - packages/*
+  - examples/*
+
+catalogs:
+  build:
+    '@typescript/native-preview': 7.0.0-dev.20251218.3
+    fast-glob: ^3.3.2
+  cli:
+    # '@antfu/eslint-config': ^6.7.3
+    '@antfu/ni': ^28.0.0
+    bumpp: ^10.3.2
+    eslint: ^9.39.2
+    lint-staged: ^16.2.7
+    publint: ^0.3.16
+    simple-git-hooks: ^2.13.1
+    tsdown: ~0.18.4
+    tsx: ^4.21.0
+    typescript: ^5.9.3
+    vite: ^7.2.7
+  docs:
+    markdown-it-container: ^4.0.0
+    vitepress: 2.0.0-alpha.15
+    vitepress-plugin-llms: ^1.9.0
+    vitepress-plugin-sandpack: ^1.1.4
+    vue: ^3.4.37
+  inlined:
+    '@antfu/utils': ^9.3.0
+  testing:
+    tinyexec: ^1.0.2
+    vitest: ^4.0.15
+    vitest-package-exports: ^0.1.1
+    yaml: ^2.8.2
+  types:
+    '@types/lodash': ^4.17.21
+    '@types/node': ^25.0.1
+onlyBuiltDependencies:
+  - esbuild
+  - simple-git-hooks

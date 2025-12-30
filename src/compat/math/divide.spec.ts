@@ -1,0 +1,83 @@
+import type { divide as divideLodash } from 'lodash'
+import * as lodashStable from '@fanslar/es-toolkit/compat'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import { symbol } from '../_internal/symbol'
+import { divide } from './divide'
+
+describe('divide', () => {
+  it('should divide two numbers', () => {
+    expect(divide(6, 4)).toBe(1.5)
+    expect(divide(-6, 4)).toBe(-1.5)
+    expect(divide(-6, -4)).toBe(1.5)
+  })
+
+  it('should coerce arguments to numbers', () => {
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide('6', '4')).toBe(1.5)
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide('x', 'y')).toEqual(Number.NaN)
+  })
+
+  it(`should return 1 when no arguments are given`, () => {
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide()).toBe(1)
+  })
+
+  it(`should work with only one defined argument`, () => {
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide(6)).toBe(6)
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide(6, undefined)).toBe(6)
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide(undefined, 4)).toBe(4)
+  })
+
+  it(`should preserve the sign of \`0\``, () => {
+    const values = [0, '0', -0, '-0']
+    const expected = [
+      [0, Infinity],
+      ['0', Infinity],
+      [-0, -Infinity],
+      ['-0', -Infinity],
+    ]
+
+    lodashStable.times(2, (index) => {
+      const actual = lodashStable.map(values, (value) => {
+        // eslint-disable-next-line
+        // @ts-ignore
+        const result = index ? divide(undefined, value) : divide(value)
+        return [result, 1 / result]
+      })
+
+      expect(actual).toEqual(expected)
+    })
+  })
+
+  it(`should convert objects to \`NaN\``, () => {
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide(0, {})).toEqual(Number.NaN)
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide({}, 0)).toEqual(Number.NaN)
+  })
+
+  it(`should convert symbols to \`NaN\``, () => {
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide(0, symbol)).toEqual(Number.NaN)
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(divide(symbol, 0)).toEqual(Number.NaN)
+  })
+
+  it('should match the type of lodash', () => {
+    expectTypeOf(divide).toEqualTypeOf<typeof divideLodash>()
+  })
+})

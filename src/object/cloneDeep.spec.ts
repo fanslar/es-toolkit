@@ -1,0 +1,493 @@
+import { describe, expect, it } from 'vitest'
+import { cloneDeep } from './cloneDeep'
+
+describe('cloneDeep', () => {
+  // -------------------------------------------------------------------------------------
+  // primitive
+  // -------------------------------------------------------------------------------------
+  it('should return primitive values as is', () => {
+    const symbol = Symbol('symbol')
+    expect(cloneDeep(42)).toBe(42)
+    expect(cloneDeep('@fanslar/es-toolkit')).toBe('@fanslar/es-toolkit')
+    expect(cloneDeep(symbol)).toBe(symbol)
+    expect(cloneDeep(true)).toBe(true)
+    expect(cloneDeep(null)).toBe(null)
+    expect(cloneDeep(undefined)).toBe(undefined)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // array
+  // -------------------------------------------------------------------------------------
+  it('should clone arrays', () => {
+    const arr = [1, 2, 3]
+    const clonedArr = cloneDeep(arr)
+
+    expect(clonedArr).toEqual(arr)
+    expect(clonedArr).not.toBe(arr)
+  })
+
+  it('should clone RegExp arrays', () => {
+    const arr = /test/.exec('hello test')
+    const cloned = cloneDeep(arr)
+
+    expect(cloned).toEqual(arr)
+    expect(cloned).not.toBe(arr)
+  })
+
+  it('should clone arrays with nested objects', () => {
+    const arr = [{ a: 1 }, { b: 2 }, { c: 3 }]
+    const clonedArr = cloneDeep(arr)
+    arr[0].a = 2
+    expect(clonedArr).not.toEqual(arr)
+    expect(clonedArr).not.toBe(arr)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // object
+  // -------------------------------------------------------------------------------------
+  it('should clone objects', () => {
+    const obj = { a: 1, b: '@fanslar/es-toolkit', c: [1, 2, 3], [Symbol()]: 2 }
+    const clonedObj = cloneDeep(obj)
+
+    expect(clonedObj).toEqual(obj)
+    expect(clonedObj).not.toBe(obj)
+  })
+
+  it('should deep clone nested objects', () => {
+    const nestedObj = { a: [1, 2, 3], b: { c: '@fanslar/es-toolkit' }, d: new Date() }
+    const clonedNestedObj = cloneDeep(nestedObj)
+    nestedObj.a[2] = 4
+    nestedObj.b.c = '@fanslar/es-toolkit-2'
+    expect(clonedNestedObj).not.toEqual(nestedObj)
+    expect(clonedNestedObj).not.toBe(nestedObj)
+    expect(clonedNestedObj.a).not.toEqual(nestedObj.a)
+    expect(clonedNestedObj.b).not.toEqual(nestedObj.b)
+    expect(clonedNestedObj.a[0]).toEqual(nestedObj.a[0])
+    expect(clonedNestedObj.a[2]).not.toEqual(nestedObj.a[2])
+  })
+
+  // -------------------------------------------------------------------------------------
+  // date
+  // -------------------------------------------------------------------------------------
+  it('should clone dates', () => {
+    const date = new Date()
+    const clonedDate = cloneDeep(date)
+
+    expect(clonedDate).toEqual(date)
+    expect(clonedDate).not.toBe(date)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // regex
+  // -------------------------------------------------------------------------------------
+  it('should clone regular expressions', () => {
+    const regex = /abc/g
+    const clonedRegex = cloneDeep(regex)
+
+    expect(clonedRegex).toEqual(regex)
+    expect(clonedRegex).not.toBe(regex)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // set
+  // -------------------------------------------------------------------------------------
+  it('should clone sets', () => {
+    const set = new Set([1, 2, 3])
+    const clonedSet = cloneDeep(set)
+
+    expect(clonedSet).toEqual(set)
+    expect(clonedSet).not.toBe(set)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // map
+  // -------------------------------------------------------------------------------------
+  it('should clone maps', () => {
+    const map = new Map([
+      [1, 'a'],
+      [2, 'b'],
+      [3, 'c'],
+    ])
+    const clonedMap = cloneDeep(map)
+
+    expect(clonedMap).toEqual(map)
+    expect(clonedMap).not.toBe(map)
+  })
+
+  it('should clone map with nested objects', () => {
+    const obj = { a: 1 }
+    const map = new Map([
+      [1, obj],
+      [2, obj],
+      [3, obj],
+    ])
+    const clonedMap = cloneDeep(map)
+    obj.a = 2
+    expect(clonedMap).not.toEqual(map) // map = {1:{a:2},2:{a:2},3:{a:2}}
+    expect(clonedMap).not.toBe(map)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // instance
+  // -------------------------------------------------------------------------------------
+  it('should clone instance', () => {
+    class A {
+      readonly props: { a: string }
+      #b: number // this is js spec private field (not cloned)
+      private c: number // this is ts spec private field (cloned)
+      private readonly d: () => number
+      constructor(props: { a: string }, b: number, c: number, d: () => number) {
+        if (props.a !== '@fanslar/es-toolkit') {
+          throw new Error('@fanslar/es-toolkit')
+        }
+        this.props = props
+        this.#b = b
+        this.c = c
+        this.d = d
+      }
+
+      getA() {
+        return this.props
+      }
+
+      getB() {
+        return this.#b
+      }
+
+      getThis() {
+        console.log(this)
+        return this
+      }
+    }
+    const props = { a: '@fanslar/es-toolkit' }
+    const d = () => 1
+    const a = new A(props, 1, 2, d)
+    const b = cloneDeep(a)
+    a.props.a = '@fanslar/es-toolkit-2'
+    expect(a).not.toBe(b)
+    // @ts-expect-error: test
+    expect(b['#b']).toBe(undefined)
+    expect(b).toEqual({
+      props: { a: '@fanslar/es-toolkit' },
+      d,
+      c: 2,
+    })
+    expect(b.getA()).toEqual({ a: '@fanslar/es-toolkit' })
+  })
+
+  // -------------------------------------------------------------------------------------
+  // File
+  // -------------------------------------------------------------------------------------
+  it('should clone File objects', () => {
+    // For legacy NodeJS support
+    if (typeof File !== 'undefined') {
+      const file = new File(['@fanslar/es-toolkit'], '@fanslar/es-toolkit.txt', {
+        type: 'text/plain',
+      })
+      const clonedFile = cloneDeep(file)
+      expect(clonedFile).not.toBe(file)
+      expect(clonedFile.name).toBe(file.name)
+      expect(clonedFile.type).toBe(file.type)
+      expect(clonedFile.size).toBe(file.size)
+      expect(clonedFile.constructor).toBe(File)
+    }
+  })
+
+  // -------------------------------------------------------------------------------------
+  // Blob
+  // -------------------------------------------------------------------------------------
+  it('should clone Blob objects', () => {
+    const blob = new Blob(['@fanslar/es-toolkit'], { type: 'text/plain' })
+    const clonedBlob = cloneDeep(blob)
+    expect(clonedBlob).not.toBe(blob)
+    expect(clonedBlob.type).toBe(blob.type)
+    expect(clonedBlob.size).toBe(blob.size)
+    expect(clonedBlob.constructor).toBe(Blob)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // ArrayBuffer
+  // -------------------------------------------------------------------------------------
+  it('should clone ArrayBuffer objects', () => {
+    const arrayBuffer = new ArrayBuffer(10)
+    const uint8View = new Uint8Array(arrayBuffer)
+    for (let i = 0; i < uint8View.length; i++) {
+      uint8View[i] = i
+    }
+    const clonedArrayBuffer = cloneDeep(arrayBuffer)
+    const clonedUint8View = new Uint8Array(clonedArrayBuffer)
+    uint8View[0] = 1
+
+    /**
+     * arrayBuffer = <01, 01, 02, 03, 04, 05, 06, 07, 08, 09>
+     * clonedArrayBuffer = <00, 01, 02, 03, 04, 05, 06, 07, 08, 09>
+     */
+    expect(clonedArrayBuffer).not.toBe(arrayBuffer)
+    /**
+     * arrayBuffer = [1, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+     * clonedArrayBuffer = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+     */
+    expect(clonedUint8View).not.toBe(uint8View)
+  })
+
+  // -------------------------------------------------------------------------------------
+  // TypedArray
+  // -------------------------------------------------------------------------------------
+  it('should clone TypedArray objects', () => {
+    const typedArray = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    const clonedTypedArray = cloneDeep(typedArray)
+    typedArray[0] = 255
+    expect(clonedTypedArray).not.toBe(typedArray)
+    expect(typedArray).toEqual(new Uint8Array([255, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+    expect(clonedTypedArray).toEqual(new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+  })
+
+  // -------------------------------------------------------------------------------------
+  // Error
+  // -------------------------------------------------------------------------------------
+
+  it('should clone Error', () => {
+    const error = new Error('@fanslar/es-toolkit')
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+  })
+  it('should clone TypeError', () => {
+    const error = new TypeError('@fanslar/es-toolkit')
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+  })
+
+  it('should clone EvalError', () => {
+    const error = new EvalError('@fanslar/es-toolkit')
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+  })
+
+  it('should clone RangeError', () => {
+    const error = new RangeError('@fanslar/es-toolkit')
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+  })
+
+  it('should clone ReferenceError', () => {
+    const error = new ReferenceError('@fanslar/es-toolkit')
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+  })
+
+  it('should clone SyntaxError', () => {
+    const error = new SyntaxError('@fanslar/es-toolkit')
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+  })
+
+  it('should clone URIError', () => {
+    const error = new URIError('@fanslar/es-toolkit')
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+  })
+
+  it('should clone custom Error', () => {
+    class HttpError extends Error {
+      code: number
+      constructor(message: string, code: number) {
+        super(message)
+        this.name = 'CustomError'
+        this.code = code
+      }
+    }
+    const error = new HttpError('@fanslar/es-toolkit', 400)
+    const clonedError = cloneDeep(error)
+    expect(clonedError).not.toBe(error)
+    expect(clonedError.message).toBe(error.message)
+    expect(clonedError.name).toBe(error.name)
+    expect(clonedError.stack).toBe(error.stack)
+    expect(clonedError.cause).toBe(error.cause)
+    expect(clonedError.code).toBe(error.code)
+  })
+
+  it('should clone DataViews', () => {
+    const buffer = new Uint8Array([0, 1, 2]).buffer
+    const view = new DataView(buffer, 1, 2)
+
+    const cloned = cloneDeep(view)
+
+    expect(cloned).not.toBe(view)
+    expect(cloned.getInt8(0)).toBe(view.getInt8(0))
+    expect(cloned.getInt8(1)).toBe(view.getInt8(1))
+  })
+
+  it('should clone buffers', () => {
+    const buffer = Buffer.from([1, 2, 3])
+
+    const cloned = cloneDeep(buffer)
+
+    expect(cloned).not.toBe(buffer)
+    expect(cloned).toEqual(buffer)
+  })
+
+  it('should clone read-only properties', () => {
+    const object: any = {}
+
+    Object.defineProperties(object, {
+      first: {
+        enumerable: true,
+        writable: true,
+        value: 1,
+      },
+      second: {
+        enumerable: true,
+        get() {
+          return 2
+        },
+      },
+    })
+
+    object.third = 3
+
+    const cloned = cloneDeep(object)
+    expect(cloned).not.toBe(object)
+    expect(cloned).toEqual({
+      first: 1,
+      second: 2,
+      third: 3,
+    })
+  })
+
+  it('should clone class instance', () => {
+    class CustomClass {
+      value: number
+
+      constructor(value: number) {
+        this.value = value
+      }
+
+      getValue() {
+        return this.value
+      }
+    }
+
+    const instance = new CustomClass(123)
+    const clonedInstance = cloneDeep(instance)
+
+    expect(clonedInstance).toEqual(instance)
+    expect(clonedInstance).not.toBe(instance)
+    expect(clonedInstance).toBeInstanceOf(CustomClass)
+
+    expect(clonedInstance.value).toBe(instance.value)
+    expect(clonedInstance.getValue()).toBe(123)
+  })
+
+  it('should clone arguments objects', () => {
+    function func() {
+      // eslint-disable-next-line prefer-rest-params
+      return cloneDeep(arguments)
+    }
+    // @ts-expect-error: arguments object allows calling with parameters despite no formal params
+    const args = func(1, 2, 3)
+    const cloned = cloneDeep(args)
+
+    expect(cloned).toEqual(args)
+    expect(cloned).not.toBe(args)
+  })
+
+  it('should clone Boolean objects', () => {
+    const boolObj = new Boolean(true)
+    const cloned = cloneDeep(boolObj)
+
+    expect(cloned).toEqual(boolObj)
+    expect(cloned).not.toBe(boolObj)
+    expect(cloned).toBeInstanceOf(Boolean)
+  })
+
+  it('should clone String objects', () => {
+    const strObj = new String('@fanslar/es-toolkit')
+    const cloned = cloneDeep(strObj)
+
+    expect(cloned).toEqual(strObj)
+    expect(cloned).not.toBe(strObj)
+    expect(cloned).toBeInstanceOf(String)
+  })
+
+  it('should clone Number objects', () => {
+    const numObj = new Number(42)
+    const cloned = cloneDeep(numObj)
+
+    expect(cloned).toEqual(numObj)
+    expect(cloned).not.toBe(numObj)
+    expect(cloned).toBeInstanceOf(Number)
+  })
+
+  it('should clone Float32Array', () => {
+    const arr = new Float32Array([1.1, 2.2, 3.3])
+    const cloned = cloneDeep(arr)
+
+    expect(cloned).toEqual(arr)
+    expect(cloned).not.toBe(arr)
+    expect(cloned).toBeInstanceOf(Float32Array)
+  })
+
+  it('should clone Float64Array', () => {
+    const arr = new Float64Array([1.1, 2.2, 3.3])
+    const cloned = cloneDeep(arr)
+
+    expect(cloned).toEqual(arr)
+    expect(cloned).not.toBe(arr)
+    expect(cloned).toBeInstanceOf(Float64Array)
+  })
+
+  it('should clone Int8Array', () => {
+    const arr = new Int8Array([1, 2, 3])
+    const cloned = cloneDeep(arr)
+
+    expect(cloned).toEqual(arr)
+    expect(cloned).not.toBe(arr)
+    expect(cloned).toBeInstanceOf(Int8Array)
+  })
+
+  it('should clone Int16Array', () => {
+    const arr = new Int16Array([1, 2, 3])
+    const cloned = cloneDeep(arr)
+
+    expect(cloned).toEqual(arr)
+    expect(cloned).not.toBe(arr)
+    expect(cloned).toBeInstanceOf(Int16Array)
+  })
+
+  it('should clone Int32Array', () => {
+    const arr = new Int32Array([1, 2, 3])
+    const cloned = cloneDeep(arr)
+
+    expect(cloned).toEqual(arr)
+    expect(cloned).not.toBe(arr)
+    expect(cloned).toBeInstanceOf(Int32Array)
+  })
+})

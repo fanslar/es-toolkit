@@ -1,0 +1,67 @@
+import type { upperCase as upperCaseLodash } from 'lodash'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import { upperCase } from './upperCase'
+
+describe('upperCase', () => {
+  const strings = ['foo bar', 'Foo bar', 'foo Bar', 'Foo Bar', 'FOO BAR', 'fooBar', '--foo-bar--', '__foo_bar__']
+
+  it(`should convert \`string\``, () => {
+    const actual = strings.map(string => upperCase(string))
+
+    const expected = strings.map(() => 'FOO BAR')
+
+    expect(actual).toEqual(expected)
+  })
+
+  it('should convert string to snake case, identical to lodash', () => {
+    expect(upperCase('åäöÅÄÖ')).toBe('AAO AAO')
+    expect(upperCase('helloÅäöWorld')).toBe('HELLO AAO WORLD')
+    expect(upperCase('café')).toBe('CAFE')
+    expect(upperCase('naïve')).toBe('NAIVE')
+    expect(upperCase('Zürich')).toBe('ZURICH')
+    expect(upperCase('São Paulo')).toBe('SAO PAULO')
+    expect(upperCase('Москва')).toBe('МОСКВА')
+  })
+
+  it(`should handle double-converting strings`, () => {
+    const actual = strings.map(string => upperCase(upperCase(string)))
+
+    const expected = strings.map(() => 'FOO BAR')
+
+    expect(actual).toEqual(expected)
+  })
+
+  it(`should remove contraction apostrophes`, () => {
+    const postfixes = ['d', 'll', 'm', 're', 's', 't', 've'];
+
+    ['\'', '\u2019'].forEach((apos) => {
+      const actual = postfixes.map(postfix => upperCase(`a b${apos}${postfix} c`))
+
+      const expected = postfixes.map(postfix => `A B${postfix.toUpperCase()} C`)
+
+      expect(actual).toEqual(expected)
+    })
+  })
+
+  it(`should remove Latin mathematical operators`, () => {
+    const actual = ['\xD7', '\xF7'].map(upperCase)
+    expect(actual).toEqual(['', ''])
+  })
+
+  it(`should coerce \`string\` to a string`, () => {
+    const string = 'foo bar'
+    expect(upperCase(new Object(string))).toBe('FOO BAR')
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    expect(upperCase({ toString: () => string })).toBe('FOO BAR')
+  })
+  it('should uppercase as space-separated words', () => {
+    expect(upperCase('--foo-bar--')).toBe('FOO BAR')
+    expect(upperCase('fooBar')).toBe('FOO BAR')
+    expect(upperCase('__foo_bar__')).toBe('FOO BAR')
+  })
+
+  it('should match the type of lodash', () => {
+    expectTypeOf(upperCase).toEqualTypeOf<typeof upperCaseLodash>()
+  })
+})

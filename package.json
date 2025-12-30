@@ -1,0 +1,98 @@
+{
+  "name": "@fanslar/es-toolkit",
+  "type": "module",
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.26.2",
+  "description": "A state-of-the-art, high-performance JavaScript utility library with a small bundle size and strong type annotations.",
+  "author": "fanslar",
+  "license": "MIT",
+  "homepage": "https://github.com/fanslar/es-toolkit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fanslar/es-toolkit.git"
+  },
+  "bugs": "https://github.com/fanslar/es-toolkit/issues",
+  "keywords": [],
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./array": "./src/array/index.ts",
+    "./compat": "./src/compat/index.ts",
+    "./error": "./src/error/index.ts",
+    "./function": "./src/function/index.ts",
+    "./map": "./src/map/index.ts",
+    "./math": "./src/math/index.ts",
+    "./object": "./src/object/index.ts",
+    "./predicate": "./src/predicate/index.ts",
+    "./promise": "./src/promise/index.ts",
+    "./set": "./src/set/index.ts",
+    "./string": "./src/string/index.ts",
+    "./util": "./src/util/index.ts",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "*.d.ts",
+    "array.js",
+    "compat",
+    "compat.js",
+    "dist",
+    "error.js",
+    "function.js",
+    "map.js",
+    "math.js",
+    "object.js",
+    "predicate.js",
+    "promise.js",
+    "set.js",
+    "string.js",
+    "util.js"
+  ],
+  "workspaces": [
+    "docs",
+    "benchmarks"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "eslint",
+    "prepublishOnly": "nr build",
+    "release": "bumpp",
+    "start": "tsx src/index.ts",
+    "test": "vitest",
+    "typecheck": "tsc",
+    "prepare": "simple-git-hooks",
+    "docs:dev": "pnpm -C docs docs:dev",
+    "docs:build": "pnpm -C docs docs:build",
+    "docs:preview": "pnpm -C docs docs:preview"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@antfu/ni": "catalog:cli",
+    "@antfu/utils": "catalog:inlined",
+    "@types/lodash": "catalog:types",
+    "@types/node": "catalog:types",
+    "@typescript/native-preview": "catalog:build",
+    "bumpp": "catalog:cli",
+    "eslint": "catalog:cli",
+    "lint-staged": "catalog:cli",
+    "publint": "catalog:cli",
+    "simple-git-hooks": "catalog:cli",
+    "tinyexec": "catalog:testing",
+    "tsdown": "catalog:cli",
+    "tsx": "catalog:cli",
+    "typescript": "catalog:cli",
+    "vite": "catalog:cli",
+    "vitest": "catalog:testing",
+    "vitest-package-exports": "catalog:testing",
+    "yaml": "catalog:testing"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && npx lint-staged"
+  },
+  "lint-staged": {
+    "!*.{spec,d}.ts": "eslint --fix --quiet"
+  }
+}

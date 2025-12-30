@@ -1,0 +1,69 @@
+import { describe, expect, it } from 'vitest'
+import { head, uniq } from '../array'
+import { map } from '../compat'
+import { curry } from '../compat/function/curry'
+import { ary } from './ary'
+import { flow } from './flow'
+
+function add(x: number, y: number) {
+  return x + y
+}
+
+function square(n: number) {
+  return n * n
+}
+
+describe('flow', () => {
+  it(`\`flow\` should supply each function with the return value of the previous`, () => {
+    const fixed = function (n: number) {
+      return n.toFixed(1)
+    }
+    const combined = flow(add, square, fixed)
+
+    expect(combined(1, 2)).toBe('9.0')
+  })
+
+  it(`\`flow\` should return a new function`, () => {
+    const noop = () => {}
+    const combined = flow(noop)
+    expect(combined).not.toBe(noop)
+  })
+
+  it(`\`flow\` should work with a curried function and \`_.head\``, () => {
+    const curried = curry((i: any) => i)
+
+    const combined = flow(head, curried)
+
+    expect(combined([1])).toBe(1)
+  })
+
+  it(`\`flow\` should work with curried functions with placeholders`, () => {
+    const curried = curry(ary(map, 2), 2)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    const getProp = curried(curried.placeholder, (value: { a: any }) => value.a)
+    const objects = [{ a: 1 }, { a: 2 }, { a: 1 }]
+
+    const combined = flow(getProp, uniq)
+
+    expect(combined(objects)).toEqual([1, 2])
+  })
+
+  it(`\`flow\` should return the first argument when no functions are provided`, () => {
+    const combined = flow()
+
+    expect(combined(42)).toBe(42)
+  })
+
+  it(`\`flow\` should preserve \`this\` context`, () => {
+    const obj = {
+      multiplier: 2,
+      multiply(x: number, y: number) {
+        return add(x, y) * this.multiplier
+      },
+    }
+    const combined = flow(obj.multiply, square)
+
+    expect(combined.call(obj, 1, 2)).toBe(36)
+  })
+})
