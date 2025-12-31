@@ -1,42 +1,44 @@
-# @fanslar/es-toolkit
 
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![bundle][bundle-src]][bundle-href]
-[![JSDocs][jsdocs-src]][jsdocs-href]
-[![License][license-src]][license-href]
+![](./docs/public/og.png)
 
-A state-of-the-art, high-performance JavaScript utility library with a small bundle size and strong type annotations.
+# @fanslar/es-toolkit &middot; [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![NPM badge](https://img.shields.io/npm/v/@fanslar/es-toolkit?logo=npm)](https://www.npmjs.com/package/@fanslar/es-toolkit)
 
-## Note for Developers
+@fanslar/es-toolkit 是一个高性能、现代化的 JavaScript 工具库，拥有极小的体积和强类型支持。
 
-This starter recommands using [npm Trusted Publisher](https://github.com/e18e/ecosystem-issues/issues/201), where the release is done on CI to ensure the security of the packages.
+- 提供丰富的实用函数，覆盖数组、对象、函数、Promise、集合等常用场景。
+- 现代实现，支持 tree-shaking，极大减少打包体积。
+- TypeScript 完全支持，类型安全，开发体验优秀。
+- 兼容 lodash，可无缝迁移。
+- 100% 单元测试覆盖，可靠稳定。
 
-To do so, you need to run `pnpm publish` manually for the very first time to create the package on npm, and then go to `https://www.npmjs.com/package/<your-package-name>/access` to set the connection to your GitHub repo.
+## 快速上手
 
-Then for the future releases, you can run `pnpm run release` to do the release and the GitHub Actions will take care of the release process.
+```ts
+import { chunk, debounce } from '@fanslar/es-toolkit'
 
-## Sponsors
+const debouncedLog = debounce(msg => {
+  console.log(msg)
+}, 300)
 
-<p align="center">
-  <a href="https://cdn.jsdelivr.net/gh/antfu/static/sponsors.svg">
-    <img src='https://cdn.jsdelivr.net/gh/antfu/static/sponsors.svg'/>
-  </a>
-</p>
+debouncedLog('Hello, world!')
+
+const arr = [1, 2, 3, 4, 5, 6]
+const chunked = chunk(arr, 2)
+console.log(chunked) // [[1,2],[3,4],[5,6]]
+```
+
+## 文档
+
+详细 API 参考与使用说明请见 [docs](./docs)。
+
+## 本地开发
+
+```bash
+pnpm i
+pnpm dev
+pnpm test
+```
 
 ## License
 
-[MIT](./LICENSE) License © [Anthony Fu](https://github.com/antfu)
-
-<!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/@fanslar/es-toolkit?style=flat&colorA=080f12&colorB=1fa669
-[npm-version-href]: https://npmjs.com/package/@fanslar/es-toolkit
-[npm-downloads-src]: https://img.shields.io/npm/dm/@fanslar/es-toolkit?style=flat&colorA=080f12&colorB=1fa669
-[npm-downloads-href]: https://npmjs.com/package/@fanslar/es-toolkit
-[bundle-src]: https://img.shields.io/bundlephobia/minzip/@fanslar/es-toolkit?style=flat&colorA=080f12&colorB=1fa669&label=minzip
-[bundle-href]: https://bundlephobia.com/result?p=@fanslar/es-toolkit
-[license-src]: https://img.shields.io/github/license/fanslar/es-toolkit.svg?style=flat&colorA=080f12&colorB=1fa669
-[license-href]: https://github.com/fanslar/es-toolkit/blob/main/LICENSE
-[jsdocs-src]: https://img.shields.io/badge/jsdocs-reference-080f12?style=flat&colorA=080f12&colorB=1fa669
-[jsdocs-href]: https://www.jsdocs.io/package/@fanslar/es-toolkit
+MIT © fanslar
